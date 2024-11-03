@@ -7,8 +7,8 @@ import Technology from './Technology'
 import AdditionalContent from './AdditionalContent'
 import Footer from './Footer'
 
-const TOTAL_FRAMES_EARTH = 300
-const TOTAL_FRAMES_TECH = 300
+const TOTAL_FRAMES_EARTH = 601
+const TOTAL_FRAMES_TECH = 601
 
 export default function Component() {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -21,7 +21,7 @@ export default function Component() {
     })
 
     const currentEarthFrame = useTransform(scrollYProgress, [0, 1], [5, TOTAL_FRAMES_EARTH + 1])
-    const currentTechFrame = useTransform(scrollYProgress, [0, 1], [1, TOTAL_FRAMES_TECH])
+    const currentTechFrame = useTransform(scrollYProgress, [0, 2], [0, TOTAL_FRAMES_TECH]); // Start from 0
     const contentY = useTransform(scrollYProgress, [0.155, 0.05], ['100%', '0%'])
 
     useEffect(() => {
@@ -38,23 +38,24 @@ export default function Component() {
             let requestId: number
 
             const preloadImages = () => {
-                const promises = [];
+                const promises = []
                 for (let i = 1; i <= totalFrames; i++) {
-                    const img = new Image();
-                    img.src = `/${prefix}/${i}.webp`;
+                    const img = new Image()
+                    img.src = `/${prefix}/${i}.webp`
                     promises.push(new Promise((resolve) => {
-                        img.onload = resolve;
-                        img.onerror = resolve; // Ensure resolve on error too
-                    }));
-                    images.push(img);
+                        img.onload = resolve
+                        img.onerror = resolve // Ensure resolve on error too
+                    }))
+                    images.push(img)
                 }
-                return Promise.all(promises);
+                return Promise.all(promises)
             }
 
             const render = () => {
-                const frameIndex = Math.round(currentFrame.get())
-                if (frameIndex >= 1 && frameIndex <= totalFrames) {
-                    const img = images[frameIndex - 1]
+                // Calculate the frame index using modulo for looping
+                const frameIndex = Math.floor(currentFrame.get()) % totalFrames; // This allows the frames to loop continuously
+                if (frameIndex >= 0 && frameIndex < totalFrames) {
+                    const img = images[frameIndex];
                     if (img.complete && img.naturalHeight !== 0) {
                         context.clearRect(0, 0, context.canvas.width, context.canvas.height)
                         context.drawImage(img, 0, 0, context.canvas.width, context.canvas.height)
@@ -64,8 +65,8 @@ export default function Component() {
             }
 
             preloadImages().then(() => {
-                render();
-            });
+                render()
+            })
 
             return () => cancelAnimationFrame(requestId)
         }
@@ -75,10 +76,10 @@ export default function Component() {
 
         return () => {
             if (earthCleanup) {
-                earthCleanup();
+                earthCleanup()
             }
             if (techCleanup) {
-                techCleanup();
+                techCleanup()
             }
         }
     }, [currentEarthFrame, currentTechFrame])
@@ -95,7 +96,7 @@ export default function Component() {
                 {/* Earth Video Section */}
                 <div className="sticky top-0 h-screen w-full overflow-hidden">
                     <canvas
-                        ref={earthCanvasRef}
+                        ref={techCanvasRef}
                         width={1920}
                         height={1080}
                         className="w-full h-full object-cover"
@@ -127,7 +128,7 @@ export default function Component() {
                 {/* Technology Video Section */}
                 <div className="sticky top-0 h-screen w-full overflow-hidden">
                     <canvas
-                        ref={techCanvasRef}
+                        ref={earthCanvasRef}
                         width={1920}
                         height={1080}
                         className="w-full h-full object-cover"
@@ -137,9 +138,9 @@ export default function Component() {
             </div>
 
             {/* Additional Content Section */}
-            <AdditionalContent/>
+            <AdditionalContent />
 
-            <Footer/>
+            <Footer />
         </div>
     )
 }
